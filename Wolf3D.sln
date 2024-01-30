@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wolf3D", "Wolf3D\Wolf3D.csproj", "{696A62EC-BBA0-4B94-BAE2-8C5C88838E2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{696A62EC-BBA0-4B94-BAE2-8C5C88838E2D}.Debug|x64.ActiveCfg = Debug|x64
+		{696A62EC-BBA0-4B94-BAE2-8C5C88838E2D}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {09BBEB4D-E88B-43B9-AA7C-2C1608F1642A}
+	EndGlobalSection
+EndGlobal
