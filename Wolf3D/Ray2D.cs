@@ -49,7 +49,7 @@ namespace IngameScript
             public void CastRay()
             {
                 int dof = 0; // depth of field
-                int dofMax = 8;
+                int dofMax = 32;
                 //hTile = ' ';
                 //vTile = ' ';
                 Vector2 step = Vector2.Zero;
@@ -129,65 +129,98 @@ namespace IngameScript
             {
                 if(Vector2.Distance(horizontal,position) < Vector2.Distance(vertical,position))
                 {
-                    if(RayCaster.textures.ContainsKey(hTile)) rayColor = RayCaster.textures[hTile].horizontal;
+                    if(RayTexture.TEXTURES.ContainsKey(hTile)) rayColor = RayTexture.TEXTURES[hTile].horizontal;
                     else rayColor = Color.Red;
                     renderSurface.drawLineRGB(position,horizontal, rayColor);
                 }
                 else
                 {
-                    if(RayCaster.textures.ContainsKey(vTile)) rayColor = RayCaster.textures[vTile].vertical;
+                    if(RayTexture.TEXTURES.ContainsKey(vTile)) rayColor = RayTexture.TEXTURES[vTile].vertical;
                     else rayColor = Color.White;
                     renderSurface.drawLineRGB(position,vertical, rayColor);
                 }
             }
             public void DrawVirticalLine(RasterSprite renderSurface, int x, float angle)
             {
-                /*
-                float distance = Vector2.Distance(vertical,position);
-                if (RayCaster.textures.ContainsKey(hTile)) rayColor = RayCaster.textures[hTile].horizontal;
-                else
-                {
-                    GridInfo.Echo("\nMissing Tile H? " + horizontal);
-                    char hTile2 = tileMap.GetTileAtWorldPosition(horizontal - new Vector2(1,0));
-                    char hTile3 = tileMap.GetTileAtWorldPosition(horizontal + new Vector2(1,0));
-                    if (RayCaster.textures.ContainsKey(hTile2)) rayColor = RayCaster.textures[hTile2].horizontal;
-                    else if (RayCaster.textures.ContainsKey(hTile3)) rayColor = RayCaster.textures[hTile3].horizontal;
-                    else GridInfo.Echo("Missing Tile H!?! " + horizontal);
-                }
-                if(Vector2.Distance(horizontal,position) < distance) 
-                {
-                    distance = Vector2.Distance(horizontal,position);
-                    if (RayCaster.textures.ContainsKey(vTile)) rayColor = RayCaster.textures[vTile].vertical;
-                    else
-                    {
-                        GridInfo.Echo("\nMissing Tile V? |" + vertical);
-                        char vTile2 = tileMap.GetTileAtWorldPosition(vertical - new Vector2(0,1));
-                        char vTile3 = tileMap.GetTileAtWorldPosition(vertical + new Vector2(0,1));
-                        if (RayCaster.textures.ContainsKey(vTile2)) rayColor = RayCaster.textures[vTile2].vertical;
-                        else if (RayCaster.textures.ContainsKey(vTile3)) rayColor = RayCaster.textures[vTile3].vertical;
-                        else GridInfo.Echo("Missing Tile V!?! |" + vertical);
-                    }
-                }
-                */
                 float distance = 0;
                 if (Vector2.Distance(horizontal, position) < Vector2.Distance(vertical, position))
                 {
                     distance = Vector2.Distance(horizontal, position);
-                    if (RayCaster.textures.ContainsKey(hTile)) rayColor = RayCaster.textures[hTile].horizontal;
+                    if (RayTexture.TEXTURES.ContainsKey(hTile)) rayColor = RayTexture.TEXTURES[hTile].horizontal;
                     else rayColor = Color.Red;
                 }
                 else
                 {
                     distance = Vector2.Distance(vertical, position);
-                    if (RayCaster.textures.ContainsKey(vTile)) rayColor = RayCaster.textures[vTile].vertical;
+                    if (RayTexture.TEXTURES.ContainsKey(vTile)) rayColor = RayTexture.TEXTURES[vTile].vertical;
                     else rayColor = Color.White;
                 }
-                distance *= (float)Math.Cos((angle-Angle%360)*Math.PI/180.0f);
-                int height = (int)((renderSurface.Size.Y*tileMap.TileSize.Y) / distance);
-                if(height > renderSurface.Size.Y) height = (int)renderSurface.Size.Y;
-                if(height < 0) height = 0;
+                distance *= (float)Math.Cos((angle - Angle % 360) * Math.PI / 180.0f);
+                int height = (int)((renderSurface.Size.Y * tileMap.TileSize.Y) / distance);
+                if (height > renderSurface.Size.Y) height = (int)renderSurface.Size.Y;
+                if (height < 0) height = 0;
                 int y = (int)(renderSurface.Size.Y / 2.0f - height / 2.0f);
-                renderSurface.drawLineRGB(new Vector2(x,y),new Vector2(x,y+height), rayColor);
+                renderSurface.drawLineRGB(new Vector2(x, y), new Vector2(x, y + height), rayColor);
+            }
+            public void DrawVirticalTexture(RasterSprite renderSurface, int x, float angle)
+            {
+                float distance = 0;
+                if (Vector2.Distance(horizontal, position) < Vector2.Distance(vertical, position))
+                {
+                    distance = Vector2.Distance(horizontal, position);
+                }
+                else
+                {
+                    distance = Vector2.Distance(vertical, position);
+                }
+                distance *= (float)Math.Cos((angle - Angle % 360) * Math.PI / 180.0f);
+                int height = (int)((renderSurface.Size.Y * tileMap.TileSize.Y) / distance);
+                if (height > renderSurface.Size.Y*1.5f) height = (int)(renderSurface.Size.Y*1.5f);
+                if (height < 0) height = 0;
+                int y = (int)(renderSurface.Size.Y / 2.0f - height / 2.0f);
+                if (Vector2.Distance(horizontal, position) < Vector2.Distance(vertical, position))
+                {
+                    // figure out which column to draw (what subpixel of the grid did horizontal hit?)
+                    int subX = (int)(horizontal.X % tileMap.TileSize.X);
+                    if(horizontal.Y < position.Y) subX = (int)(tileMap.TileSize.X - subX);
+                    string column = RayTexture.TEXTURES[hTile].GetHorizontalData(subX, height);
+                    if(y < 0)
+                    {
+                        string[] lines = column.Split('\n');
+                        int size = (int)Math.Min(renderSurface.Size.Y-2, lines.Length + y);
+                        GridInfo.Echo("hTrimming " +x +", " + y + " lines "+lines.Length + " size " + size);
+                        string[] lines2 = lines.Skip(-y).ToArray();
+                        GridInfo.Echo("hTrimming2 " + x + ", " + y + " lines " + lines2.Length + " size " + size);
+                        column = string.Join("\n", lines2);
+                        y = 0;
+                    }
+                    if(!renderSurface.drawPixels(x, y, column))
+                    {
+                        string[] lines = column.Split('\n');
+                        GridInfo.Echo("hDrawPixels failed "+x+","+y+" "+column.Length);
+                    }
+                } 
+                else
+                {
+                    // figure out which column to draw (what subpixel of the grid did vertical hit?)
+                    int subY = (int)(vertical.Y % tileMap.TileSize.Y);
+                    if (vertical.X < position.X) subY = (int)(tileMap.TileSize.Y - subY);
+                    string column = RayTexture.TEXTURES[vTile].GetVerticalData(subY, height);
+                    if(y < 0)
+                    {
+                        string[] lines = column.Split('\n');
+                        int size = (int)Math.Min(renderSurface.Size.Y-2, lines.Length+y);
+                        //GridInfo.Echo("vTrimming "+ x + ", " + y + " lines "+lines.Length + " size " + size);
+                        string[] lines2 = lines.Skip(-y).ToArray();
+                        column = string.Join("\n", lines2);
+                        y = 0;
+                    }
+                    if(!renderSurface.drawPixels(x, y, column))
+                    {
+                        string[] lines = column.Split('\n');
+                        GridInfo.Echo("vDrawPixels failed "+x+","+y+" " + lines[0].Length +", " +lines.Length);
+                    }
+                }
             }
         }
     }

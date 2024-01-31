@@ -26,11 +26,15 @@ namespace IngameScript
         RayCaster rayCaster;
         public Program()
         {
-            Echo("Begin Wolf3D");
+            Echo("Booting Wolf3D");
             GridInfo.Init("Wolf3D",this);
             Echo("GridInfo Init");
             GridBlocks.InitBlocks(GridTerminalSystem);
             Echo("GridBlocks Init");
+            GridDB.Init();
+            Echo("GridDB Init");
+            RayTexture.LoadTextures();
+            Echo("RayTexture Loaded");
             rayCaster = new RayCaster(GridBlocks.GetTextSurface("Main Display"));
             Echo("RayCaster Init");
             Runtime.UpdateFrequency = UpdateFrequency.Update1;

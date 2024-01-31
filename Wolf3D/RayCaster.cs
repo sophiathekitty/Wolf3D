@@ -27,12 +27,6 @@ namespace IngameScript
         //----------------------------------------------------------------------
         public class RayCaster : Screen
         {
-            public static Dictionary<char, RayTexture> textures = new Dictionary<char, RayTexture>()
-            {
-                { 'a', new RayTexture() { vertical = Color.Blue, horizontal = Color.DarkBlue } },
-                { 'b', new RayTexture() { vertical = Color.Green, horizontal = Color.DarkGreen } },
-                { 'c', new RayTexture() { vertical = Color.Yellow, horizontal = Color.DarkGoldenrod } },
-            };
             RasterSprite renderSurfaceMap;
             RasterSprite renderSurface;
             TileMap tileMap;
@@ -44,11 +38,13 @@ namespace IngameScript
             Vector2 loadTilePos = Vector2.Zero;
 
             bool drawMap = false;
+            bool renderTextures = true;
 
             Ray2D ray;
 
             public RayCaster(IMyTextSurface drawingSurface) : base(drawingSurface)
             {
+                BackgroundColor = Color.Black;
                 loading = drawMap;
                 renderSurfaceMap = new RasterSprite(Vector2.Zero, 0.070f*2f, new Vector2(128),"");
                 if (drawMap) renderSurfaceMap.fillRGB(Color.Black);
@@ -57,23 +53,7 @@ namespace IngameScript
                 renderSurface.fillRGB(Color.Black);
                 renderCache = renderSurface.Data;
                 AddSprite(renderSurface);
-                tileMap = new TileMap(
-                    "aaaaaaaaaaaaaaaaa\n" +
-                    "aaaaaaaaaaaaaaaaa\n" +
-                    "aa   c  aaaaaaaaa\n" +
-                    "aa      aabbbbbbb\n" +
-                    "aa   b         bb\n" +
-                    "aa      aabbb  bb\n" +
-                    "aa      aabb   bb\n" +
-                    "aaaaaaaaaabbbb bb\n" +
-                    "aaaaaaaaaabbb  bb\n" +
-                    "cccccccccccc   cc\n" +
-                    "cc             cc\n" +
-                    "cc aa  aa  aa  cc\n" +
-                    "cc             cc\n" +
-                    "cc             cc\n" +
-                    "ccccccccccccccccc\n" +
-                    "ccccccccccccccccc");
+                tileMap = new TileMap(GridDB.GetData("Map",0));
                 if (drawMap) tileMap.DrawGrid(renderSurfaceMap);
                 renderCacheMap = renderSurfaceMap.Data;
                 renderSurface.Visible = !drawMap;
@@ -97,10 +77,10 @@ namespace IngameScript
                 if (loading && drawMap)
                 {
                     char tile = tileMap.GetTile(loadTilePos);
-                    if (textures.ContainsKey(tile))
+                    if (RayTexture.TEXTURES.ContainsKey(tile))
                     {
                         GridInfo.Echo("Loading tile " + loadTilePos + "(" + tileMap.Size + ")");
-                        tileMap.FillTile(renderSurfaceMap, loadTilePos, textures[tile].Color);
+                        tileMap.FillTile(renderSurfaceMap, loadTilePos, RayTexture.TEXTURES[tile].Color);
                     }
                     loadTilePos.X++;
                     if (loadTilePos.X >= tileMap.Size.X)
@@ -126,8 +106,9 @@ namespace IngameScript
                     for (int i = 0; i < 64; i++)
                     {
                         ray.CastRay();
-                        if(drawMap) ray.Draw(renderSurfaceMap);
-                        else ray.DrawVirticalLine(renderSurface, i,player.Angle);
+                        if (drawMap) ray.Draw(renderSurfaceMap);
+                        else if (renderTextures) ray.DrawVirticalTexture(renderSurface, i, player.Angle);
+                        else ray.DrawVirticalLine(renderSurface, i, player.Angle);
                         ray.Angle += step;
                     }
                     //ray.CastRay();

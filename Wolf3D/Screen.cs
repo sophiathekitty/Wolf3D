@@ -388,33 +388,25 @@ namespace IngameScript
                 return pixels;
             }
             // draw a box of pixels over the image
-            public void drawPixels(int x, int y, string pixels)
+            public bool drawPixels(int x, int y, string pixels)
             {
                 string[] lines = pixels.Split('\n');
                 int width = lines[0].Length;
                 int height = lines.Length;
                 // make sure the box is within the Size range
-                if (x < 0 || x + width >= Size.X || y < 0 || y + height >= Size.Y) return;
+                if (x < 0 || x + width >= Size.X || y < 0 /*|| y + height >= Size.Y*/) return false;
                 int i = 0;
-                for (int y1 = y; y1 < y + height; y1++)
+                for (int y1 = y; y1 < y + height && y1 < Size.Y; y1++)
                 {
-                    Data = Data.Remove((int)(y1 * (Size.X + 1) + x), width);
-                    Data = Data.Insert((int)(y1 * (Size.X + 1) + x), lines[i]);
-                    i++;
-                    /*
-                    for (int x1 = x; x1 < x + width; x1++)
+                    int index = (int)(y1 * (Size.X + 1) + x);
+                    if(index + width < Data.Length && index > 0)
                     {
-                        // if the pixel is not invisible, draw it
-                        if (pixels[i] != INVISIBLE)
-                        {
-                            Data = Data.Remove((int)(y1 * (Size.X + 1) + x1), 1);
-                            Data = Data.Insert((int)(y1 * (Size.X + 1) + x1), pixels[i].ToString());
-                        }
-                        i++;
+                        Data = Data.Remove(index, width);
+                        Data = Data.Insert(index, lines[i]);
                     }
                     i++;
-                    */
                 }
+                return true;
             }
             // draw a line from x1,y1 to x2,y2
             // rgb ints between 0 - 255
