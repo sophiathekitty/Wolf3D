@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using VRage;
 using VRage.Collections;
 using VRage.Game;
@@ -29,14 +30,19 @@ namespace IngameScript
         {
             GameInput input;
             TileMap tileMap;
+            public static int Keys = 0;
+            public static float Health = 50;
+            public static float MaxHealth = 100;
+            public static int Gold = 0;
             public Vector2 Position;
+            public Vector2 InteractPoint { get { return Position + new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation)) * radius; } }
             public float Rotation; // radians
             // angle in degrees
             public float Angle { get { return Rotation * 180.0f / (float)Math.PI; } set { Rotation = value * (float)Math.PI / 180.0f; } }
             public float FOV = 1.0f;
             public float MoveSpeed = 1.0f;
             public float RotationSpeed = 0.1f;
-            float radius = 3.0f;
+            float radius = 6.66f;
             public Player(GameInput input, TileMap tileMap)
             {
                 this.input = input;
@@ -45,7 +51,7 @@ namespace IngameScript
             public void Update()
             {
                 if(!input.PlayerPresent) return;
-                Angle += input.Mouse.X * RotationSpeed;
+                Angle = (Angle + input.Mouse.X * RotationSpeed) % 360;
                 Vector2 move = Vector2.Zero;
                 // move forward
                 if(input.W) move += new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation));
@@ -60,11 +66,17 @@ namespace IngameScript
                     move.Normalize();
                     move *= MoveSpeed;
                     Vector2 newPosition = Position + move;
-                    if(tileMap.GetTileAtWorldPosition(newPosition) == ' ')
+                    if(!RayTexture.TEXTURES.ContainsKey(tileMap.GetTileAtWorldPosition(newPosition)) && !tileMap.IsBlocking(newPosition))
                     {
                         Position = newPosition;
                     }
+                    else
+                    {
+                        Position -= move;
+                    }
                 }
+                // check for items
+                tileMap.PickUpItem(Position);
             }
             public void Draw(RasterSprite renderSurface)
             {

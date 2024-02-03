@@ -408,6 +408,27 @@ namespace IngameScript
                 }
                 return true;
             }
+            // draw a box of pixels over the image
+            public bool drawPixelColumnWithIgnore(int x, int y, string pixels)
+            {
+                string[] lines = pixels.Split('\n');
+                int width = lines[0].Length;
+                int height = lines.Length;
+                // make sure the box is within the Size range
+                if (x < 0 || x + width >= Size.X || y < 0 /*|| y + height >= Size.Y*/) return false;
+                int i = 0;
+                for (int y1 = y; y1 < y + height && y1 < Size.Y; y1++)
+                {
+                    int index = (int)(y1 * (Size.X + 1) + x);
+                    if (index + width < Data.Length && index > 0 && lines[i][0] != IGNORE)
+                    {
+                        Data = Data.Remove(index, width);
+                        Data = Data.Insert(index, lines[i]);
+                    }
+                    i++;
+                }
+                return true;
+            }
             // draw a line from x1,y1 to x2,y2
             // rgb ints between 0 - 255
             public void drawLineRGB(int x1, int y1, int x2, int y2, int r, int g, int b)

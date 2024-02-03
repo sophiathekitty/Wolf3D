@@ -28,10 +28,12 @@ namespace IngameScript
         public class RayTexture
         {
             public static Dictionary<char,RayTexture> TEXTURES = new Dictionary<char, RayTexture>();
+            public static char Door = 'm';
+            public static char LockedDoor = 'n';
+            public static char Goal = 'o';
             public static void LoadTextures()
             {
-                GridInfo.Me.CustomData = "Loading Textures\n";
-                RasterSprite sprite = new RasterSprite(Vector2.Zero, 0.1f, new Vector2(32,48), GridDB.GetData("Textures",0));
+                RasterSprite sprite = new RasterSprite(Vector2.Zero, 0.1f, new Vector2(32,240), GridDB.GetData("Textures",0));
                 LoadTexture('a', sprite, 0, Color.Blue, Color.DarkBlue);
                 LoadTexture('b', sprite, 16, Color.Green, Color.DarkGreen);
                 LoadTexture('c', sprite, 32, Color.Yellow, Color.DarkGoldenrod);
@@ -46,23 +48,29 @@ namespace IngameScript
                 LoadTexture('l', sprite, 176, Color.LightPink, Color.DarkRed);
                 LoadTexture('m', sprite, 192, Color.Pink, Color.DarkMagenta);
                 LoadTexture('n', sprite, 208, Color.LightCyan, Color.DarkCyan);
-                /*
-                string left = sprite.getPixels(0, 0, 16, 16);
-                string right = sprite.getPixels(16, 0, 16, 16);
-                TEXTURES.Add('a', new RayTexture(Color.Blue, Color.DarkBlue, left, right));
-                left = sprite.getPixels(0, 16, 16, 16);
-                right = sprite.getPixels(16, 16, 16, 16);
-                TEXTURES.Add('b', new RayTexture(Color.Green, Color.DarkGreen, left, right));
-                left = sprite.getPixels(0, 32, 16, 16);
-                right = sprite.getPixels(16, 32, 16, 16);
-                TEXTURES.Add('c', new RayTexture(Color.Yellow, Color.DarkGoldenrod, left, right));
-                */
+                LoadTexture('o', sprite, 224, Color.Orange, Color.DarkOrange);
             }
             static void LoadTexture(char id, RasterSprite sprite, int y, Color hColor, Color vColor)
             {
                 string left = sprite.getPixels(0, y, 16, 16);
                 string right = sprite.getPixels(16, y, 16, 16);
+                //GridInfo.Echo("Loading Texture " + id +" left: "+left.Length +" right: "+right.Length);
                 TEXTURES.Add(id, new RayTexture(hColor,vColor, left, right));
+            }
+            public static string[] ParseTextureData(string data)
+            {
+                string[] lines = data.Split('\n');
+                string[] columns = new string[lines[0].Length];
+                for (int y = 0; y < lines.Length; y++)
+                {
+                    for (int x = 0; x < lines[y].Length; x++)
+                    {
+                        if (y == 0) columns[x] = "";
+                        else columns[x] += "\n";
+                        columns[x] += lines[y][x];
+                    }
+                }
+                return columns;
             }
             //----------------------------------------------------------------------
             // Instance Stuff
@@ -86,22 +94,7 @@ namespace IngameScript
                 this.horizontalData = horizontalData;
                 this.verticalData = verticalData;
             }
-            string[] ParseTextureData(string data)
-            {
-                string[] lines = data.Split('\n');
-                string[] columns = new string[lines[0].Length];
-                for (int y = 0; y < lines.Length; y++)
-                {
-                    for (int x = 0; x < lines[y].Length; x++)
-                    {
-                        if (y == 0) columns[x] = "";
-                        else columns[x] += "\n";
-                        columns[x] += lines[y][x];
-                    }
-                }
-                GridInfo.Me.CustomData += "\n" + string.Join("\n", columns);
-                return columns;
-            }
+
             public string GetHorizontalData(int index, float scale)
             {
                 // scale virtically by scale

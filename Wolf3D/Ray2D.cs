@@ -27,6 +27,7 @@ namespace IngameScript
         //----------------------------------------------------------------------
         public class Ray2D
         {
+            public static float[] depth = new float[64];
             Vector2 position;
             Vector2 horizontal = Vector2.Zero;
             Vector2 vertical = Vector2.Zero;
@@ -80,7 +81,7 @@ namespace IngameScript
                 {
                     char tile = tileMap.GetTileAtWorldPosition(vertical);
                     //vTile = tile;
-                    if (tile != ' ')
+                    if (RayTexture.TEXTURES.ContainsKey(tile))
                     {
                         vTile = tile;
                         break;
@@ -116,7 +117,7 @@ namespace IngameScript
                 {
                     char tile = tileMap.GetTileAtWorldPosition(horizontal);
                     //hTile = tile;
-                    if (tile != ' ')
+                    if (RayTexture.TEXTURES.ContainsKey(tile))
                     {
                         hTile = tile;
                         break;
@@ -175,36 +176,36 @@ namespace IngameScript
                 }
                 distance *= (float)Math.Cos((angle - Angle % 360) * Math.PI / 180.0f);
                 int height = (int)((renderSurface.Size.Y * tileMap.TileSize.Y) / distance);
-                if (height > renderSurface.Size.Y*1.5f) height = (int)(renderSurface.Size.Y*1.5f);
+                if (height > renderSurface.Size.Y*2.5f) height = (int)(renderSurface.Size.Y*2.5f);
                 if (height < 0) height = 0;
                 int y = (int)(renderSurface.Size.Y / 2.0f - height / 2.0f);
                 if (Vector2.Distance(horizontal, position) < Vector2.Distance(vertical, position))
                 {
                     // figure out which column to draw (what subpixel of the grid did horizontal hit?)
                     int subX = (int)(horizontal.X % tileMap.TileSize.X);
-                    if(horizontal.Y < position.Y) subX = (int)(tileMap.TileSize.X - subX);
+                    if(horizontal.Y > position.Y) subX = (int)(tileMap.TileSize.X - subX - 1);
                     string column = RayTexture.TEXTURES[hTile].GetHorizontalData(subX, height);
                     if(y < 0)
                     {
                         string[] lines = column.Split('\n');
                         int size = (int)Math.Min(renderSurface.Size.Y-2, lines.Length + y);
-                        GridInfo.Echo("hTrimming " +x +", " + y + " lines "+lines.Length + " size " + size);
+                        //GridInfo.Echo("hTrimming " +x +", " + y + " lines "+lines.Length + " size " + size);
                         string[] lines2 = lines.Skip(-y).ToArray();
-                        GridInfo.Echo("hTrimming2 " + x + ", " + y + " lines " + lines2.Length + " size " + size);
+                        //GridInfo.Echo("hTrimming2 " + x + ", " + y + " lines " + lines2.Length + " size " + size);
                         column = string.Join("\n", lines2);
                         y = 0;
                     }
                     if(!renderSurface.drawPixels(x, y, column))
                     {
                         string[] lines = column.Split('\n');
-                        GridInfo.Echo("hDrawPixels failed "+x+","+y+" "+column.Length);
+                        //GridInfo.Echo("hDrawPixels failed "+x+","+y+" "+column.Length);
                     }
                 } 
                 else
                 {
                     // figure out which column to draw (what subpixel of the grid did vertical hit?)
                     int subY = (int)(vertical.Y % tileMap.TileSize.Y);
-                    if (vertical.X < position.X) subY = (int)(tileMap.TileSize.Y - subY);
+                    if (vertical.X < position.X) subY = (int)(tileMap.TileSize.Y - subY - 1);
                     string column = RayTexture.TEXTURES[vTile].GetVerticalData(subY, height);
                     if(y < 0)
                     {
@@ -218,9 +219,10 @@ namespace IngameScript
                     if(!renderSurface.drawPixels(x, y, column))
                     {
                         string[] lines = column.Split('\n');
-                        GridInfo.Echo("vDrawPixels failed "+x+","+y+" " + lines[0].Length +", " +lines.Length);
+                        //GridInfo.Echo("vDrawPixels failed "+x+","+y+" " + lines[0].Length +", " +lines.Length);
                     }
                 }
+                depth[x] = distance;
             }
         }
     }

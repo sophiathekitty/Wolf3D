@@ -35,6 +35,8 @@ namespace IngameScript
             Echo("GridDB Init");
             RayTexture.LoadTextures();
             Echo("RayTexture Loaded");
+            RaySprite.LoadSprites();
+            Echo("Sprites Loaded");
             rayCaster = new RayCaster(GridBlocks.GetTextSurface("Main Display"));
             Echo("RayCaster Init");
             Runtime.UpdateFrequency = UpdateFrequency.Update1;

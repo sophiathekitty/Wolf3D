@@ -27,6 +27,10 @@ namespace IngameScript
         //----------------------------------------------------------------------
         public class RayCaster : Screen
         {
+            public static ScreenSprite DebugDisplay;
+            public static ScreenSprite KeysDisplay;
+            public static ScreenSprite GoldDisplay;
+            public static ScreenSprite HealthDisplay;
             RasterSprite renderSurfaceMap;
             RasterSprite renderSurface;
             TileMap tileMap;
@@ -60,14 +64,28 @@ namespace IngameScript
                 renderSurfaceMap.Visible = drawMap;
                 input = new GameInput(GridBlocks.GetPlayer());
                 player = new Player(input,tileMap);
-                player.Position = new Vector2(60);
-                player.Angle = 360-45;
+                player.Position = tileMap.Start; //= new Vector2(60);
+                player.Angle = tileMap.StartAngle; //= 360-45;
                 ray = new Ray2D(player.Position, player.Angle, tileMap);
+                DebugDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopLeft,Vector2.Zero,1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.LEFT,SpriteType.TEXT);
+                AddSprite(DebugDisplay);
+                KeysDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopRight,Vector2.Zero,1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.RIGHT,SpriteType.TEXT);
+                AddSprite(KeysDisplay);
+                GoldDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopRight,new Vector2(0,30),1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.RIGHT,SpriteType.TEXT);
+                AddSprite(GoldDisplay);
+                HealthDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.BottomLeft,new Vector2(0,-30),1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.LEFT,SpriteType.TEXT);
+                AddSprite(HealthDisplay);
+            }
+            public override void Main(string argument)
+            {
+                Update();
+                Draw();
             }
             public override void Update()
             {
                 // game logic goes here
                 player.Update();
+                if(input.EPressed) tileMap.OpenDoorAtWorldPosition(player.InteractPoint);
             }
             public override void Draw()
             {
@@ -111,8 +129,12 @@ namespace IngameScript
                         else ray.DrawVirticalLine(renderSurface, i, player.Angle);
                         ray.Angle += step;
                     }
+                    if((!drawMap) && renderTextures) tileMap.DrawSprites(renderSurface, player);
                     //ray.CastRay();
                     //ray.Draw(renderSurface);
+                    HealthDisplay.Data = "Health: " + Player.Health + "/" + Player.MaxHealth;
+                    GoldDisplay.Data = "Gold: " + Player.Gold;
+                    KeysDisplay.Data = "Keys: " + Player.Keys;
                 }
                 //GridInfo.Echo("Draw? " + GridInfo.RunCount++);
                 base.Draw();

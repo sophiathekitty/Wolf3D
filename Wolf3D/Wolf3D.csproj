@@ -57,6 +57,7 @@
     <AdditionalFiles Include="MDK\whitelist.cache" />
     <Compile Include="Ray2D.cs" />
     <Compile Include="RayCaster.cs" />
+    <Compile Include="RaySprite.cs" />
     <Compile Include="RayTexture.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="TileMap.cs" />
