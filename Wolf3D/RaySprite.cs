@@ -44,13 +44,19 @@ namespace IngameScript
             public Vector2 Position;
             public int id;
             public bool Visible = true;
+            public bool Flipped = true;
+            public bool IsVisible;
             public RaySprite(Vector2 position, int id)
             {
                 Position = position;
                 this.id = id;
             }
-            public void Draw(RasterSprite surface, Player player)
+            //public int ScreenX {get; private set;}
+            public int FirstX = 0;  
+            public int LastX = 0;
+            public virtual void Draw(RasterSprite surface, Player player)
             {
+                IsVisible = false;
                 if(Visible)
                 {
                     // find the angle between the player and the sprite
@@ -64,15 +70,16 @@ namespace IngameScript
                         if (playerAngle > 180) playerAngle -= 360;
                     }
                     float degrees = (float)(angle - playerAngle);
-                    if (player.Position.Y < Position.Y)
-                    {
+                    //if (player.Position.Y < Position.Y)
+                    //{
                         if (degrees < 0) degrees += 360;
                         if (degrees > 180) degrees -= 360;
-                    }
+                    //}
                     float step = 60.0f / 64.0f; // angle per pixel
                     // -30 to 30 degrees is 0 to 64 pixels for x
                     // convert angle to x coordinate
                     int x = (int)((degrees + 30) / step);
+                    //ScreenX = x;
                     //surface.setPixelRGB(x, (int)(surface.Size.Y/2), 255, 255, 0);
                     // find the distance between the player and the sprite
                     float distance = (float)Math.Sqrt(Math.Pow(Position.X - player.Position.X, 2) + Math.Pow(Position.Y - player.Position.Y, 2));
@@ -85,11 +92,17 @@ namespace IngameScript
                     x = (int)(x - scale / 2);
                     float percent = (float)scale / (float)SpriteData[id].Length;
                     int c = 0;
+                    FirstX = -1;
+                    LastX = -1;
                     for (int i = x; i < x + scale; i++)
                     {
                         if (i >= 0 && i < surface.Size.X && Ray2D.depth[i] > distance)
                         {
-                            surface.drawPixelColumnWithIgnore(i, y, ScaleColumn((int)(c / percent), scale));
+                            if(Flipped) surface.drawPixelColumnWithIgnore(i, y, ScaleColumn((int)(((scale-1)-c) / percent), scale));
+                            else surface.drawPixelColumnWithIgnore(i, y, ScaleColumn((int)(c / percent), scale));
+                            IsVisible = true;
+                            if(FirstX == -1) FirstX = i;
+                            else LastX = i;
                         }
                         c++;
                     }

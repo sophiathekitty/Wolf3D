@@ -17,6 +17,7 @@ using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
+using VRage.GameServices;
 using VRageMath;
 
 namespace IngameScript
@@ -34,6 +35,7 @@ namespace IngameScript
             public static float Health = 50;
             public static float MaxHealth = 100;
             public static int Gold = 0;
+            public static bool Dead { get { return Health <= 0; } }
             public Vector2 Position;
             public Vector2 InteractPoint { get { return Position + new Vector2((float)Math.Cos(Rotation), (float)Math.Sin(Rotation)) * radius; } }
             public float Rotation; // radians
@@ -43,6 +45,8 @@ namespace IngameScript
             public float MoveSpeed = 1.0f;
             public float RotationSpeed = 0.1f;
             float radius = 6.66f;
+            int invincibility = 0;
+            int invincibilityMax = 100;
             public Player(GameInput input, TileMap tileMap)
             {
                 this.input = input;
@@ -77,6 +81,15 @@ namespace IngameScript
                 }
                 // check for items
                 tileMap.PickUpItem(Position);
+                invincibility = Math.Max(0,invincibility-1);
+                if(invincibility == 0) RayCaster.HealthDisplay.Color = Color.White;
+            }
+            public void Damage(float amount)
+            {
+                if(invincibility > 0) return;
+                Health = Math.Max(0,Health-amount);
+                invincibility = invincibilityMax;
+                RayCaster.HealthDisplay.Color = Color.Red;
             }
             public void Draw(RasterSprite renderSurface)
             {

@@ -356,6 +356,27 @@ namespace IngameScript
                     Data += line;
                 }
             }
+            // fill half the icon with a color
+            // ints between 0 - 255
+            public void fillHalfRGB(int r, int g, int b)
+            {
+                string cache = Data;
+                Data = "";
+                for (int x = 0; x < Size.X; x++)
+                {
+                    addPixelRGB(r, g, b);
+                }
+                string line = Data;
+                Data = cache;
+                for (int y = 0; y < Size.Y/2; y++)
+                {
+                    Data += line;
+                }
+            }
+            public void fillHalfRGB(Color color)
+            {
+                fillHalfRGB(color.R, color.G, color.B);
+            }
             public void fillRGB(Color color)
             {
                 fillRGB(color.R, color.G, color.B);
