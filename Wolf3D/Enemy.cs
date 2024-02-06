@@ -58,10 +58,10 @@ namespace IngameScript
                     // check if there's any tiles between the player and the enemy
                     // find the position half way between the player and the enemy
                     Vector2 diff = Position - RayCaster.player.Position;
-                    Vector2 step = diff/4;
+                    Vector2 step = diff/8;
 
                     Vector2 pos = (Position - step);
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         char tile = RayCaster.tileMap.GetTileAtWorldPosition(pos);
                         if (RayTexture.TEXTURES.ContainsKey(tile))
@@ -91,8 +91,8 @@ namespace IngameScript
                     float target_rotation = (float)Math.Atan2(target.Y - Position.Y, target.X - Position.X);
                     // lerp Rotation (radians) to target_rotation
                     float delta = target_rotation - Rotation;
-                    if (delta > Math.PI) delta -= (float)(Math.PI * 2);
-                    else if (delta < -Math.PI) delta += (float)(Math.PI * 2);
+                    //if (delta > Math.PI) delta -= (float)(Math.PI * 2);
+                    //else if (delta < -Math.PI) delta += (float)(Math.PI * 2);
                     Rotation += delta * 0.01f;
                     if (Vector2.DistanceSquared(Position, target) < 1) { Speed = 0; target = Vector2.Zero; }
                     else

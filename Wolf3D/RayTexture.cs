@@ -28,14 +28,15 @@ namespace IngameScript
         public class RayTexture
         {
             public static Dictionary<char,RayTexture> TEXTURES = new Dictionary<char, RayTexture>();
-            public static char Door = 'm';
+            public static char Door =       'm';
             public static char LockedDoor = 'n';
             public static char SecretDoor = 'q';
-            public static char Goal = 'o';
+            public static char Goal =       'o';
             public static char SecretGoal = 'p';
+            public static char FinalGoal =  'r';
             public static void LoadTextures()
             {
-                RasterSprite sprite = new RasterSprite(Vector2.Zero, 0.1f, new Vector2(32,240), GridDB.GetData("Textures",0));
+                RasterSprite sprite = new RasterSprite(Vector2.Zero, 0.1f, new Vector2(32,256), GridDB.GetData("Textures",0));
                 LoadTexture('a', sprite, 0, Color.Blue, Color.DarkBlue);
                 LoadTexture('b', sprite, 16, Color.Green, Color.DarkGreen);
                 LoadTexture('c', sprite, 32, Color.Yellow, Color.DarkGoldenrod);
@@ -53,6 +54,7 @@ namespace IngameScript
                 LoadTexture('n', sprite, 208, Color.LightCyan, Color.DarkCyan);
                 LoadTexture('o', sprite, 224, Color.Orange, Color.DarkOrange);
                 LoadTexture('p', sprite, 224, Color.Orange, Color.DarkOrange);
+                LoadTexture('r', sprite, 240, Color.White, Color.Gray);
             }
             static void LoadTexture(char id, RasterSprite sprite, int y, Color hColor, Color vColor)
             {

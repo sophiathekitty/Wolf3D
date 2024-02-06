@@ -95,7 +95,7 @@ namespace IngameScript
                 AddSprite(AmmoDisplay);
                 ButtonPrompt = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.Center,Vector2.Zero,1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.CENTER,SpriteType.TEXT);
                 AddSprite(ButtonPrompt);
-                GameOverDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.Center,new Vector2(0,-90),1.75f,Vector2.Zero,Color.White,"Monospace","You've Joined\nthe\nSkeleton Club",TextAlignment.CENTER,SpriteType.TEXT);
+                GameOverDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),1.75f,Vector2.Zero,Color.White,"Monospace","The\nSkeleton Club\nJust Got\nA New Member",TextAlignment.CENTER,SpriteType.TEXT);
                 AddSprite(GameOverDisplay);
                 GameOverDisplay.Visible = false;
             }
@@ -126,7 +126,7 @@ namespace IngameScript
                             if(exit > 0)
                             {
                                 int level = TileMap.level + exit;
-                                if(level < 5)
+                                if(level < 6)
                                 {
                                     tileMap.LoadMap(level);
                                     player.Position = tileMap.Start;

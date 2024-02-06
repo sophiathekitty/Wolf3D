@@ -198,7 +198,7 @@ namespace IngameScript
             {
                 char tile = GetTileAtWorldPosition(position);
                 if (tile == RayTexture.Goal) return 1;
-                if (tile == RayTexture.SecretGoal) return 2;
+                if (tile == RayTexture.SecretGoal) return 3;
                 return 0;
             }
             public string DoorPromptatWorldPosition(Vector2 position)
