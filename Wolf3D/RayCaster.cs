@@ -34,6 +34,9 @@ namespace IngameScript
             public static ScreenSprite AmmoDisplay;
             public static ScreenSprite ButtonPrompt;
             public static ScreenSprite GameOverDisplay;
+            public static ScreenSprite LevelStartDisplay;
+            public static ScreenSprite LevelEndDisplay;
+            public static ScreenSprite TitleDisplay;
             //RasterSprite renderSurfaceMap;
             RasterSprite renderSurface;
             public static TileMap tileMap;
@@ -45,12 +48,15 @@ namespace IngameScript
             string renderCache;
             //bool loading = false;
             //Vector2 loadTilePos = Vector2.Zero;
-
+            bool GameWon = false;
             //bool drawMap = false;
             bool renderTextures = true;
 
             int respawnDelay = 0;
             int respawnDelayMax = 500;
+
+            int nextLevel = 0;
+            bool playerPresent = false;
 
             Ray2D ray;
             //----------------------------------------------------------------------
@@ -95,9 +101,19 @@ namespace IngameScript
                 AddSprite(AmmoDisplay);
                 ButtonPrompt = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.Center,Vector2.Zero,1f,Vector2.Zero,Color.White,"Monospace","",TextAlignment.CENTER,SpriteType.TEXT);
                 AddSprite(ButtonPrompt);
-                GameOverDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),1.75f,Vector2.Zero,Color.White,"Monospace","The\nSkeleton Club\nJust Got\nA New Member",TextAlignment.CENTER,SpriteType.TEXT);
+                GameOverDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),1.75f,Vector2.Zero,Color.White,"Monospace","Looks Like\nThe\nSkeleton Club\nJust Got\nA New Member",TextAlignment.CENTER,SpriteType.TEXT);
                 AddSprite(GameOverDisplay);
                 GameOverDisplay.Visible = false;
+                LevelStartDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),1.75f,Vector2.Zero,Color.White,"Monospace","Level\nStart",TextAlignment.CENTER,SpriteType.TEXT);
+                AddSprite(LevelStartDisplay);
+                LevelStartDisplay.Visible = false;
+                LevelEndDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),1.75f,Vector2.Zero,Color.White,"Monospace","Level\nEnd",TextAlignment.CENTER,SpriteType.TEXT);
+                AddSprite(LevelEndDisplay);
+                LevelEndDisplay.Visible = false;
+                TitleDisplay = new ScreenSprite(ScreenSprite.ScreenSpriteAnchor.TopCenter,new Vector2(0,30),RasterSprite.DEFAULT_PIXEL_SCALE * 0.75f,Vector2.Zero,Color.White,"Monospace",GridDB.GetData("Sign", 0,false),TextAlignment.CENTER,SpriteType.TEXT);
+                AddSprite(TitleDisplay);
+                TitleDisplay.Visible = !input.PlayerPresent;
+                playerPresent = input.PlayerPresent;
             }
             //----------------------------------------------------------------------
             // Main
@@ -113,6 +129,72 @@ namespace IngameScript
             //----------------------------------------------------------------------
             public override void Update()
             {
+                if(input.PlayerPresent && !playerPresent)
+                {
+                    tileMap.LoadMap(0);
+                    player.Position = tileMap.Start;
+                    player.Angle = tileMap.StartAngle;
+                }
+                playerPresent = input.PlayerPresent;
+                if(TileMap.started == false)
+                {
+                    if (input.SpacePressed)
+                    {
+                        TileMap.started = true;
+                        renderSurface.Color = Color.White;
+                        LevelStartDisplay.Visible = false;
+                        ButtonPrompt.Data = "";
+                    }
+                    else
+                    {
+                        LevelStartDisplay.Visible = true;
+                        LevelStartDisplay.Data = "Level " + (TileMap.level + 1) + ":\n" + TileMap.name;
+                        ButtonPrompt.Data = "\n\n\nPress Space to Start";
+                        renderSurface.Color = Color.DarkBlue;
+                    }
+                    return;
+                } else if (TileMap.completed)
+                {
+                    if (input.SpacePressed)
+                    {
+                        LevelEndDisplay.Visible = false;
+                        tileMap.LoadMap(nextLevel);
+                        player.Position = tileMap.Start;
+                        player.Angle = tileMap.StartAngle;
+                        return;
+                    }
+                    else
+                    {
+                        LevelEndDisplay.Visible = true;
+                        LevelEndDisplay.Data = "Level " + (TileMap.level + 1) + "\nCompleted\n\nGold: " + Player.Gold + "\n"
+                            + "Kills: " + Math.Round(tileMap.KilledPercentage * 100) + "%\n"
+                            + "Items: " + Math.Round(tileMap.ItemsPercentage * 100) + "%";
+                        ButtonPrompt.Data = "\n\n\n\nPress Space to Continue";
+                        renderSurface.Color = Color.DarkBlue;
+                    }
+                    return;
+                }
+                else if (GameWon)
+                {
+                    if (input.SpacePressed)
+                    {
+                        GameWon = false;
+                        tileMap.LoadMap(0);
+                        player.Position = tileMap.Start;
+                        player.Angle = tileMap.StartAngle;
+                        return;
+                    }
+                    else
+                    {
+                        LevelEndDisplay.Visible = true;
+                        LevelEndDisplay.Data = "You Win!\nGold: " + Player.Gold + "\n"
+                            + "Kills: " + Math.Round(tileMap.KilledPercentage * 100) + "%\n"
+                            + "Items: " + Math.Round(tileMap.ItemsPercentage * 100) + "%";
+                        ButtonPrompt.Data = "\n\n\n\nPress Space to Restart";
+                        renderSurface.Color = Color.DarkGreen;
+                    }
+                    return;
+                }
                 // game logic goes here
                 if (!Player.Dead)
                 {
@@ -120,18 +202,25 @@ namespace IngameScript
                     player.Update();
                     if (input.EPressed)
                     {
-                        if (!tileMap.OpenDoorAtWorldPosition(player.InteractPoint))
+                        if (tileMap.OpenDoorAtWorldPosition(player.InteractPoint)) GameSoundPlayer.Play("WolfDoor");
+                        else
                         {
                             int exit = tileMap.OpenGoalDoorAtWorldPosition(player.InteractPoint);
                             if(exit > 0)
                             {
-                                int level = TileMap.level + exit;
-                                if(level < 6)
-                                {
-                                    tileMap.LoadMap(level);
-                                    player.Position = tileMap.Start;
-                                    player.Angle = tileMap.StartAngle;
-                                }
+                                //int level = TileMap.level + exit;
+                                nextLevel = Math.Min(TileMap.level + exit, TileMap.MaxLevel);
+                                TileMap.completed = true;
+                                GameSoundPlayer.Play("RoundEnd");
+                            }
+                            else if(exit < 0)
+                            {
+                                // won game
+                                renderSurface.Color = Color.DarkGreen;
+                                GameWon = true;
+                                LevelEndDisplay.Visible = true;
+                                LevelEndDisplay.Data = "You Win!\nGold: " + Player.Gold;
+                                GameSoundPlayer.Play("RoundEnd");
                             }
                         }
                     }
@@ -159,65 +248,56 @@ namespace IngameScript
             //----------------------------------------------------------------------
             public override void Draw()
             {
-                // drawing code goes here
-                //renderSurfaceMap.Data = renderCacheMap;
-                /*
-                if (loading && drawMap)
+                if(!input.PlayerPresent)
                 {
-                    char tile = tileMap.GetTile(loadTilePos);
-                    if (RayTexture.TEXTURES.ContainsKey(tile))
-                    {
-                        GridInfo.Echo("Loading tile " + loadTilePos + "(" + tileMap.Size + ")");
-                        tileMap.FillTile(renderSurfaceMap, loadTilePos, RayTexture.TEXTURES[tile].Color);
-                    }
-                    loadTilePos.X++;
-                    if (loadTilePos.X >= tileMap.Size.X)
-                    {
-                        loadTilePos.X = 0;
-                        loadTilePos.Y++;
-                    }
-                    if (loadTilePos.Y >= tileMap.Size.Y)
-                    {
-                        loading = false;
-                        //renderSurfaceMap.Visible = false;
-                        ///renderSurface.Visible = true;
-                    }
-                    renderCacheMap = renderSurfaceMap.Data;
+                    TitleDisplay.Visible = true;
+                    renderSurface.Color = Color.Black;
+                    ButtonPrompt.Data = "";
+                    LevelStartDisplay.Visible = false;
+                    LevelEndDisplay.Visible = false;
                 }
-                else 
-                */
+                else
+                {
+                    TitleDisplay.Visible = false;
+                }
+                // drawing code goes here
                 if(input.PlayerPresent && !Player.Dead)
                 {
                     renderSurface.Data = renderCache;
-                    renderSurface.Color = Color.White;
-                    //if(renderSurfaceMap.Visible) player.Draw(renderSurfaceMap);
                     ray.Position = player.Position;
                     ray.Angle = player.Angle - 30 % 360;
-                    int j = 0;
                     float step = 60.0f / renderSurface.Size.X;
                     for (int i = 0; i < renderSurface.Size.X; i++)
                     {
                         ray.CastRay();
-                        //if (drawMap) ray.Draw(renderSurfaceMap);
-                        //else
                         if (renderTextures) ray.DrawVirticalTexture(renderSurface, i, player.Angle);
                         else ray.DrawVirticalLine(renderSurface, i, player.Angle);
                         ray.Angle += step;
                     }
-                    if(/*(!drawMap) && */renderTextures) tileMap.DrawSprites(renderSurface, player);
-                    //ray.CastRay();
-                    //ray.Draw(renderSurface);
-                    HealthDisplay.Data = "HP: " + (int)Player.Health + "%";
-                    GoldDisplay.Data = "Gold: " + Player.Gold;
-                    KeysDisplay.Data = "Keys: " + Player.Keys;
-                    AmmoDisplay.Data = "Ammo: " + Weapon.Ammo;
-                    ButtonPrompt.Data = tileMap.DoorPromptatWorldPosition(player.InteractPoint);
+                    if(renderTextures) tileMap.DrawSprites(renderSurface, player);
+                    if (TileMap.started && !TileMap.completed && !GameWon)
+                    {
+                        HealthDisplay.Data = "HP: " + (int)Player.Health + "%";
+                        GoldDisplay.Data = "Gold: " + Player.Gold;
+                        KeysDisplay.Data = "Keys: " + Player.Keys;
+                        AmmoDisplay.Data = "Ammo: " + Weapon.Ammo;
+                        ButtonPrompt.Data = tileMap.DoorPromptatWorldPosition(player.InteractPoint);
+                        weapons[weaponIndex].Visible = true;
+                    } else
+                    {
+                        HealthDisplay.Data = "";
+                        GoldDisplay.Data = "";
+                        KeysDisplay.Data = "";
+                        AmmoDisplay.Data = "";
+                        weapons[weaponIndex].Visible = false;
+                    }
                 }
                 else if (Player.Dead)
                 {
                     if (!GameOverDisplay.Visible)
                     {
                         respawnDelay = respawnDelayMax;
+                        GameSoundPlayer.Play("GameDeath");
                     }
                     GameOverDisplay.Visible = true;
                     renderSurface.Color = Color.DarkRed;
@@ -225,9 +305,12 @@ namespace IngameScript
                     {
                         GameOverDisplay.Visible = false;
                         tileMap.ReloadMap();
+                        tileMap.AddEnemy(player.Position, player.Angle / 90);
                         player.Position = tileMap.Start;
                         player.Angle = tileMap.StartAngle;
+                        renderSurface.Color = Color.White;
                     }
+                    weapons[weaponIndex].Visible = false;
                     HealthDisplay.Data = "";
                     GoldDisplay.Data = "";
                     KeysDisplay.Data = "";

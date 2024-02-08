@@ -37,6 +37,7 @@ namespace IngameScript
             Echo("RayTexture Loaded");
             RaySprite.LoadSprites();
             Echo("Sprites Loaded");
+            GameSoundPlayer.Init();
             rayCaster = new RayCaster(GridBlocks.GetTextSurface("Main Display"));
             Echo("RayCaster Init");
             Runtime.UpdateFrequency = UpdateFrequency.Update1;

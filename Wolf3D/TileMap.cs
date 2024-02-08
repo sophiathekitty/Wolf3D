@@ -28,6 +28,7 @@ namespace IngameScript
         //----------------------------------------------------------------------
         public class TileMap
         {
+            public static int MaxLevel = 5;
             string[] map;
             List<RaySprite> itemSprites = new List<RaySprite>();
             List<RaySprite> blocking = new List<RaySprite>();
@@ -42,6 +43,12 @@ namespace IngameScript
             public Vector2 TileSize = new Vector2(16);
             public Vector2 Start = Vector2.One;
             public float StartAngle = 0;
+            int totalEnemies = 0;
+            int totalItems = 0;
+            public static int KilledEnemies = 0;
+            public float KilledPercentage { get { return (float)KilledEnemies / (float)totalEnemies; } }
+            public int ItemsPickedUp { get { return totalItems - itemSprites.Count; } }
+            public float ItemsPercentage { get { return (float)ItemsPickedUp / (float)totalItems; } }
             public TileMap(string map)
             {
                 LoadMap(map);
@@ -73,6 +80,9 @@ namespace IngameScript
             {
                 itemSprites.Clear();    blocking.Clear();
                 renderSprites.Clear();  enemies.Clear();
+                totalEnemies = 0;
+                totalItems = 0;
+                KilledEnemies = 0;
                 string[] parts = map.Split('|');
                 Map = parts[0];
                 if (parts.Length > 1) // player info
@@ -109,6 +119,7 @@ namespace IngameScript
                                 RaySprite raySprite = new RaySprite(new Vector2(x,y) * TileSize - TileSize / 2, id);
                                 itemSprites.Add(raySprite);
                                 renderSprites.Add(raySprite);
+                                totalItems++;
                             }
                         }
                     }
@@ -147,10 +158,17 @@ namespace IngameScript
                                 Enemy enemy = new Enemy(new Vector2(x, y) * TileSize - TileSize / 2, angle);
                                 enemies.Add(enemy);
                                 renderSprites.Add(enemy);
+                                totalEnemies++;
                             }
                         }
                     }
                 }
+            }
+            public void AddEnemy(Vector2 position, float angle)
+            {
+                Enemy enemy = new Enemy(position, angle);
+                enemies.Add(enemy);
+                renderSprites.Add(enemy);
             }
             public char GetTile(Vector2 position)
             {
@@ -199,6 +217,7 @@ namespace IngameScript
                 char tile = GetTileAtWorldPosition(position);
                 if (tile == RayTexture.Goal) return 1;
                 if (tile == RayTexture.SecretGoal) return 3;
+                if (tile == RayTexture.FinalGoal) return -1;
                 return 0;
             }
             public string DoorPromptatWorldPosition(Vector2 position)
@@ -212,6 +231,7 @@ namespace IngameScript
                 }
                 if (tile == RayTexture.Goal) return "Press E to exit";
                 if (tile == RayTexture.SecretGoal) return "Press E to exit\nSecret Exit!";
+                if(tile == RayTexture.FinalGoal) return "Press E to exit\nFinal Exit!";
                 return "";
             }
             public void DrawGrid(RasterSprite renderSurface)
@@ -241,7 +261,7 @@ namespace IngameScript
                 //GridInfo.Echo("Drawing " + itemSprites.Count + " sprites");
                 // sort sprites by distance to player (furthest first)
                 renderSprites.Sort((a, b) => (int)(b.Position - player.Position).LengthSquared() - (int)(a.Position - player.Position).LengthSquared());
-                int i = 0;
+                //int i = 0;
                 foreach(RaySprite sprite in renderSprites)
                 {
                     //if(i++ > 10) break;
@@ -287,6 +307,7 @@ namespace IngameScript
                         }
                         if (remove)
                         {
+                            GameSoundPlayer.Play("WolfGold");
                             renderSprites.Remove(itemSprites[i]);
                             itemSprites.RemoveAt(i);
                         }

@@ -71,7 +71,12 @@ namespace IngameScript
                 if (!attacking) 
                 {
                     if(needsAmmo && Ammo <= 0) return;
-                    if(needsAmmo) Ammo = Math.Max(0,Ammo-1);
+                    if (needsAmmo)
+                    {
+                        GameSoundPlayer.Play("WolfGun");
+                        Ammo = Math.Max(0, Ammo - 1);
+                    } else GameSoundPlayer.Play("WolfKnife");
+                    
                     //see if we killed any enemies
                     foreach(Enemy enemy in TileMap.enemies)
                     {
@@ -79,6 +84,8 @@ namespace IngameScript
                         if (enemy.LastX > 32 - attackRadius && enemy.FirstX < 32 + attackRadius)
                         {
                             enemy.Dead = true;
+                            TileMap.KilledEnemies++;
+                            GameSoundPlayer.Play("WolfHit");
                             break;
                         }
                     }

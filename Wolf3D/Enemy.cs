@@ -34,9 +34,9 @@ namespace IngameScript
             public bool Dead = false;
             int animationFrame = 0;
             int animationDelay = 0;
-            static int animationDelayMax = 10;
+            static int animationDelayMax = 30;
             static int animationFrames = 3;
-            static float damage = 10;
+            static float damage = 20;
             Vector2 target = Vector2.Zero;
             int relativeAngleToPlayer 
             { 
@@ -76,7 +76,7 @@ namespace IngameScript
                     return true;
                 }
             }
-            public float Damage { get { return Math.Max(0,damage-Vector2.Distance(Position,RayCaster.player.Position)); } }
+            public float Damage { get { return Math.Min(Math.Max(0,damage-Vector2.Distance(Position,RayCaster.player.Position))*25,damage); } }
             public Enemy(Vector2 position, float angle) : base(position, 8)
             {
                 Angle = angle * 90;

@@ -90,6 +90,7 @@ namespace IngameScript
                 Health = Math.Max(0,Health-amount);
                 invincibility = invincibilityMax;
                 RayCaster.HealthDisplay.Color = Color.Red;
+                GameSoundPlayer.Play("WolfPain");
             }
             public void Draw(RasterSprite renderSurface)
             {
