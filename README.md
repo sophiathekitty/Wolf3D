@@ -1,6 +1,6 @@
 # Wolf3D
 
-a raycaster engine i made for space engineers
+a raycaster engine i made for space engineers. i was inspired to see if i could get this 3D effect working in Space Engineers after i saw a video of an asteroid base with an arcade. and when checking out the blueprints for the arcade cabinets i totally missed that the Doom cabinet was decorative. i wasn't really surprised that it was. because it didn't look like there was anything to store the graphics... though i initially thought it would need to have walls and sectors like Doom. i found some video tutorials that explained how to do it. an then i had copilot help me rewrite it using some math functions i understand better than bitshifting... 
 
 ## Resources Used:
 
